@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MyProtocolsAPI_CristianSalazar.Attributes;
 using MyProtocolsAPI_CristianSalazar.Models;
 
 namespace MyProtocolsAPI_CristianSalazar.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[ApiKey]
     public class UsersController : ControllerBase
     {
         private readonly MyProtocolDBContext _context;
@@ -19,6 +21,29 @@ namespace MyProtocolsAPI_CristianSalazar.Controllers
         {
             _context = context;
         }
+
+        // Este get valida el usuario que quiere ingresar en la app
+        //GET: api/Users
+
+        [HttpGet("ValidateLogin")]
+        public async Task<ActionResult<User>> ValidateLogin(string username, string password)
+        
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(e => e.Email.Equals(username) &&
+                                                                 e.Password == password);
+
+            if (user == null)
+            {
+                return NotFound();
+
+            }
+
+
+            return Ok(user);
+        }
+
+
+
 
         // GET: api/Users
         [HttpGet]
@@ -93,26 +118,6 @@ namespace MyProtocolsAPI_CristianSalazar.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetUser", new { id = user.UserId }, user);
-        }
-
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteUser(int id)
-        {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-            var user = await _context.Users.FindAsync(id);
-            if (user == null)
-            {
-                return NotFound();
-            }
-
-            _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
 
         private bool UserExists(int id)
